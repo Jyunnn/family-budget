@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --ink-100: 226 232 240;
+  --ink-200: 148 163 184;
+  --ink-300: 100 116 139;
+  --surface-900: 15 23 42;
+  --surface-800: 30 41 59;
+  --surface-700: 51 65 85;
+  --accent-400: 56 189 248;
+  --accent-500: 14 165 233;
+  --glow-400: 251 146 60;
+}
+
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  background-color: rgb(var(--surface-900));
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.15), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(251, 146, 60, 0.12), transparent 35%),
+    linear-gradient(120deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.9));
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(56, 189, 248, 0.3);
+}
+
+.section-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(18px);
+}
+
+.mesh-grid {
+  background-image: linear-gradient(
+      rgba(148, 163, 184, 0.06) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
