@@ -5,7 +5,7 @@ import { useBudgetStore } from './stores/budget'
 const store = useBudgetStore()
 
 onMounted(() => {
-  store.loadFromStorage()
+  store.loadFromApi()
 })
 </script>
 

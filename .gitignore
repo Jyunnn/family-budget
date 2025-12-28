@@ -1,9 +1,13 @@
 /node_modules
 /dist
 /.env
-.DS_Store
 /logs
 /Roles
+/backend/FamilyBudget.Api/obj/
+/backend/FamilyBudget.Api/bin/
+
 AGENTS*
 Product-Spec.md
 Changelog.md
+
+.DS_Store

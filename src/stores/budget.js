@@ -1,50 +1,19 @@
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { formatDate, formatMonth } from '../utils/date'
+import { api, getErrorMessage } from '../api/client'
 
-const STORAGE_KEY = 'family-budget-state-v1'
-
-const defaultCategoryNames = {
-  en: ['Food', 'Household', 'Transport', 'Utilities', 'Other'],
-  'zh-TW': ['食材餐費', '水電五金', '交通運輸', '水電費', '其他費用']
-}
-
-const getDefaultCategories = () => {
-  let locale = 'zh-TW'
-  if (typeof localStorage !== 'undefined') {
-    const savedLocale = localStorage.getItem('family-budget-locale')
-    if (savedLocale) {
-      locale = savedLocale
-    }
-  }
-  if (typeof navigator !== 'undefined' && navigator.language && locale === 'zh-TW') {
-    locale = navigator.language.startsWith('zh') ? 'zh-TW' : 'en'
-  }
-  const names = defaultCategoryNames[locale] || defaultCategoryNames.en
-  return [
-    { id: 'c_food', name: names[0], isActive: true },
-    { id: 'c_household', name: names[1], isActive: true },
-    { id: 'c_transport', name: names[2], isActive: true },
-    { id: 'c_utilities', name: names[3], isActive: true },
-    { id: 'c_other', name: names[4], isActive: true }
-  ]
-}
-
-const createId = (prefix) => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return `${prefix}_${crypto.randomUUID()}`
-  }
-  return `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
-}
+const DEFAULT_EXPENSE_RANGE = { from: '2025-01-01', to: '2034-12-31' }
 
 export const useBudgetStore = defineStore('budget', () => {
   const members = ref([])
-  const categories = ref(getDefaultCategories())
+  const categories = ref([])
   const expenses = ref([])
   const selectedDate = ref(formatDate(new Date()))
   const periodFilter = ref({ type: 'month', value: formatMonth(new Date()) })
   const error = ref('')
   const isReady = ref(false)
+  const isLoading = ref(false)
 
   const activeCategories = computed(() => categories.value.filter((item) => item.isActive))
 
@@ -52,38 +21,42 @@ export const useBudgetStore = defineStore('budget', () => {
     error.value = message
   }
 
-  const loadFromStorage = () => {
+  const clearError = () => {
+    error.value = ''
+  }
+
+  const loadFromApi = async () => {
+    isLoading.value = true
+    clearError()
     try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const data = JSON.parse(raw)
-        members.value = data.members ?? []
-        categories.value = data.categories ?? getDefaultCategories()
-        expenses.value = data.expenses ?? []
-      }
-      isReady.value = true
+      const [membersRes, categoriesRes, expensesRes] = await Promise.all([
+        api.get('/members'),
+        api.get('/categories'),
+        api.get('/expenses', { params: DEFAULT_EXPENSE_RANGE })
+      ])
+      members.value = membersRes.data ?? []
+      categories.value = categoriesRes.data ?? []
+      expenses.value = expensesRes.data ?? []
     } catch (err) {
-      setError('Failed to load saved data.')
+      setError(getErrorMessage(err, 'Failed to load data.'))
+    } finally {
       isReady.value = true
-      console.error('Storage load error:', err)
+      isLoading.value = false
     }
   }
 
-  const persistState = () => {
+  const refreshExpenses = async (range = DEFAULT_EXPENSE_RANGE) => {
+    clearError()
     try {
-      const payload = {
-        members: members.value,
-        categories: categories.value,
-        expenses: expenses.value
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+      const response = await api.get('/expenses', { params: range })
+      expenses.value = response.data ?? []
+      return { ok: true }
     } catch (err) {
-      setError('Failed to save data.')
-      console.error('Storage save error:', err)
+      const message = getErrorMessage(err, 'Failed to load expenses.')
+      setError(message)
+      return { ok: false, message }
     }
   }
-
-  watch([members, categories, expenses], persistState, { deep: true })
 
   const setSelectedDate = (value) => {
     selectedDate.value = value
@@ -93,67 +66,129 @@ export const useBudgetStore = defineStore('budget', () => {
     periodFilter.value = { type, value }
   }
 
-  const addMember = ({ name, monthlyContribution }) => {
-    members.value.push({
-      id: createId('m'),
-      name,
-      monthlyContribution: Number(monthlyContribution)
-    })
-  }
-
-  const updateMember = (id, payload) => {
-    const index = members.value.findIndex((item) => item.id === id)
-    if (index === -1) return false
-    members.value[index] = { ...members.value[index], ...payload }
-    return true
-  }
-
-  const removeMember = (id) => {
-    const inUse = expenses.value.some((expense) => expense.memberId === id)
-    if (inUse) {
-      return { removed: false, reason: 'in-use' }
+  const addMember = async ({ name, monthlyContribution }) => {
+    clearError()
+    try {
+      const response = await api.post('/members', {
+        name: name?.trim(),
+        monthlyContribution: Number(monthlyContribution)
+      })
+      members.value.push(response.data)
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to add member.')
+      setError(message)
+      return { ok: false, message }
     }
-    members.value = members.value.filter((item) => item.id !== id)
-    return { removed: true }
   }
 
-  const addCategory = ({ name }) => {
-    categories.value.push({ id: createId('c'), name, isActive: true })
-  }
-
-  const updateCategory = (id, payload) => {
-    const index = categories.value.findIndex((item) => item.id === id)
-    if (index === -1) return false
-    categories.value[index] = { ...categories.value[index], ...payload }
-    return true
-  }
-
-  const toggleCategory = (id, value) => {
-    const index = categories.value.findIndex((item) => item.id === id)
-    if (index === -1) return false
-    categories.value[index].isActive = value
-    return true
-  }
-
-  const removeCategory = (id) => {
-    const inUse = expenses.value.some((expense) => expense.categoryId === id)
-    if (inUse) {
-      toggleCategory(id, false)
-      return { removed: false, reason: 'in-use' }
+  const updateMember = async (id, payload) => {
+    clearError()
+    try {
+      await api.put(`/members/${id}`, {
+        name: payload.name?.trim(),
+        monthlyContribution: Number(payload.monthlyContribution)
+      })
+      const index = members.value.findIndex((item) => item.id === id)
+      if (index !== -1) {
+        members.value[index] = { ...members.value[index], ...payload }
+      }
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to update member.')
+      setError(message)
+      return { ok: false, message }
     }
-    categories.value = categories.value.filter((item) => item.id !== id)
-    return { removed: true }
   }
 
-  const addExpense = ({ date, memberId, categoryId, amount, note }) => {
-    expenses.value.push({
-      id: createId('e'),
-      date,
-      memberId,
-      categoryId,
-      amount: Number(amount),
-      note: note?.trim() || ''
-    })
+  const removeMember = async (id) => {
+    clearError()
+    try {
+      await api.delete(`/members/${id}`)
+      members.value = members.value.filter((item) => item.id !== id)
+      return { removed: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to remove member.')
+      setError(message)
+      const reason = err?.response?.status === 409 ? 'in-use' : undefined
+      return { removed: false, reason, message }
+    }
+  }
+
+  const addCategory = async ({ name }) => {
+    clearError()
+    try {
+      const response = await api.post('/categories', { name: name?.trim() })
+      categories.value.push(response.data)
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to add category.')
+      setError(message)
+      return { ok: false, message }
+    }
+  }
+
+  const updateCategory = async (id, payload) => {
+    clearError()
+    try {
+      const response = await api.put(`/categories/${id}`, {
+        name: payload.name?.trim(),
+        isActive: payload.isActive
+      })
+      const index = categories.value.findIndex((item) => item.id === id)
+      if (index !== -1) {
+        categories.value[index] = response.data
+      }
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to update category.')
+      setError(message)
+      return { ok: false, message }
+    }
+  }
+
+  const toggleCategory = async (id, value) => {
+    return updateCategory(id, { isActive: value })
+  }
+
+  const removeCategory = async (id) => {
+    clearError()
+    try {
+      const response = await api.delete(`/categories/${id}`)
+      const result = response.data
+      if (result?.removed) {
+        categories.value = categories.value.filter((item) => item.id !== id)
+        return { removed: true }
+      }
+      const index = categories.value.findIndex((item) => item.id === id)
+      if (index !== -1) {
+        categories.value[index] = { ...categories.value[index], isActive: false }
+      }
+      return { removed: false, reason: result?.reason }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to remove category.')
+      setError(message)
+      return { removed: false, message }
+    }
+  }
+
+  const addExpense = async ({ date, memberId, categoryId, amount, note }) => {
+    clearError()
+    try {
+      const response = await api.post('/expenses', {
+        date,
+        memberId,
+        categoryId,
+        amount: Number(amount),
+        note: note?.trim() || null
+      })
+      expenses.value.unshift(response.data)
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to add expense.')
+      setError(message)
+      return { ok: false, message }
+    }
   }
 
   return {
@@ -164,8 +199,10 @@ export const useBudgetStore = defineStore('budget', () => {
     periodFilter,
     error,
     isReady,
+    isLoading,
     activeCategories,
-    loadFromStorage,
+    loadFromApi,
+    refreshExpenses,
     setSelectedDate,
     setPeriodFilter,
     addMember,

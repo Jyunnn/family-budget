@@ -24,7 +24,7 @@ const resetForm = () => {
   errorMessage.value = ''
 }
 
-const saveMember = () => {
+const saveMember = async () => {
   errorMessage.value = ''
   if (!form.value.name || !form.value.monthlyContribution) {
     errorMessage.value = t('member.requiredError')
@@ -35,23 +35,31 @@ const saveMember = () => {
     return
   }
   if (editingId.value) {
-    store.updateMember(editingId.value, {
+    const result = await store.updateMember(editingId.value, {
       name: form.value.name,
       monthlyContribution: Number(form.value.monthlyContribution)
     })
+    if (!result.ok) {
+      errorMessage.value = result.message || t('member.requiredError')
+      return
+    }
   } else {
-    store.addMember({
+    const result = await store.addMember({
       name: form.value.name,
       monthlyContribution: Number(form.value.monthlyContribution)
     })
+    if (!result.ok) {
+      errorMessage.value = result.message || t('member.requiredError')
+      return
+    }
   }
   resetForm()
 }
 
-const removeMember = (memberId) => {
-  const result = store.removeMember(memberId)
+const removeMember = async (memberId) => {
+  const result = await store.removeMember(memberId)
   if (!result.removed) {
-    errorMessage.value = t('member.removeBlocked')
+    errorMessage.value = result.message || t('member.removeBlocked')
   }
 }
 </script>

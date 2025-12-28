@@ -21,24 +21,39 @@ const resetForm = () => {
   errorMessage.value = ''
 }
 
-const saveCategory = () => {
+const saveCategory = async () => {
   errorMessage.value = ''
   if (!form.value.name) {
     errorMessage.value = t('category.requiredError')
     return
   }
   if (editingId.value) {
-    store.updateCategory(editingId.value, { name: form.value.name })
+    const result = await store.updateCategory(editingId.value, { name: form.value.name })
+    if (!result.ok) {
+      errorMessage.value = result.message || t('category.requiredError')
+      return
+    }
   } else {
-    store.addCategory({ name: form.value.name })
+    const result = await store.addCategory({ name: form.value.name })
+    if (!result.ok) {
+      errorMessage.value = result.message || t('category.requiredError')
+      return
+    }
   }
   resetForm()
 }
 
-const removeCategory = (categoryId) => {
-  const result = store.removeCategory(categoryId)
+const removeCategory = async (categoryId) => {
+  const result = await store.removeCategory(categoryId)
   if (!result.removed) {
-    errorMessage.value = t('category.inUse')
+    errorMessage.value = result.message || t('category.inUse')
+  }
+}
+
+const toggleCategory = async (category) => {
+  const result = await store.toggleCategory(category.id, !category.isActive)
+  if (!result.ok) {
+    errorMessage.value = result.message || t('category.inUse')
   }
 }
 </script>
@@ -91,7 +106,7 @@ const removeCategory = (categoryId) => {
           <button
             class="rounded-lg border border-slate-700/70 bg-slate-950/50 px-2 py-1 text-slate-200"
             type="button"
-            @click="store.toggleCategory(category.id, !category.isActive)"
+            @click="toggleCategory(category)"
           >
             {{ t('actions.toggle') }}
           </button>

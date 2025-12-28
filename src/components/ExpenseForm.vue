@@ -31,7 +31,7 @@ const resetForm = () => {
   }
 }
 
-const submitExpense = () => {
+const submitExpense = async () => {
   errorMessage.value = ''
   if (!form.value.date || !form.value.memberId || !form.value.categoryId || !form.value.amount) {
     errorMessage.value = t('expenseForm.requiredError')
@@ -44,13 +44,17 @@ const submitExpense = () => {
 
   try {
     isSaving.value = true
-    store.addExpense({
+    const result = await store.addExpense({
       date: form.value.date,
       memberId: form.value.memberId,
       categoryId: form.value.categoryId,
       amount: Number(form.value.amount),
       note: form.value.note
     })
+    if (!result.ok) {
+      errorMessage.value = result.message || t('expenseForm.saveError')
+      return
+    }
     store.setSelectedDate(form.value.date)
     resetForm()
   } catch (err) {
