@@ -79,6 +79,9 @@ const selectedDayExpenses = computed(() => {
     .filter((expense) => expense.date === store.selectedDate)
     .map((expense) => ({
       id: expense.id,
+      date: expense.date,
+      memberId: expense.memberId,
+      categoryId: expense.categoryId,
       memberName: membersMap.get(expense.memberId) || 'Unknown',
       categoryName: categoriesMap.get(expense.categoryId) || 'Other',
       amount: expense.amount,

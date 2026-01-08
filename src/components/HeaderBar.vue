@@ -37,6 +37,22 @@ const changeLocale = (value) => {
           <p class="mt-2 text-sm text-slate-400">
             {{ t('app.subtitle') }}
           </p>
+          <nav class="mt-4 flex flex-wrap gap-2 text-sm">
+            <RouterLink
+              to="/"
+              class="rounded-full border border-slate-700/70 bg-slate-950/60 px-4 py-1 text-slate-300 transition hover:border-slate-400/80 hover:text-slate-100"
+              exact-active-class="border-sky-400/80 bg-sky-400/20 text-sky-200"
+            >
+              {{ t('nav.home') }}
+            </RouterLink>
+            <RouterLink
+              to="/setting"
+              class="rounded-full border border-slate-700/70 bg-slate-950/60 px-4 py-1 text-slate-300 transition hover:border-slate-400/80 hover:text-slate-100"
+              exact-active-class="border-sky-400/80 bg-sky-400/20 text-sky-200"
+            >
+              {{ t('nav.setting') }}
+            </RouterLink>
+          </nav>
         </div>
         <div class="flex flex-col gap-4 lg:items-end">
           <div class="flex items-center gap-2 text-xs">

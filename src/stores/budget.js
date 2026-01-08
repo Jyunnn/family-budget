@@ -191,6 +191,42 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
+  const updateExpense = async (id, payload) => {
+    clearError()
+    try {
+      const response = await api.put(`/expenses/${id}`, {
+        date: payload.date,
+        memberId: payload.memberId,
+        categoryId: payload.categoryId,
+        amount: Number(payload.amount),
+        note: payload.note?.trim() || null
+      })
+      const index = expenses.value.findIndex((item) => item.id === id)
+      const updated = response.data ?? { ...payload, id }
+      if (index !== -1) {
+        expenses.value[index] = { ...expenses.value[index], ...updated }
+      }
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to update expense.')
+      setError(message)
+      return { ok: false, message }
+    }
+  }
+
+  const removeExpense = async (id) => {
+    clearError()
+    try {
+      await api.delete(`/expenses/${id}`)
+      expenses.value = expenses.value.filter((item) => item.id !== id)
+      return { removed: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to remove expense.')
+      setError(message)
+      return { removed: false, message }
+    }
+  }
+
   return {
     members,
     categories,
@@ -212,6 +248,8 @@ export const useBudgetStore = defineStore('budget', () => {
     updateCategory,
     toggleCategory,
     removeCategory,
-    addExpense
+    addExpense,
+    updateExpense,
+    removeExpense
   }
 })

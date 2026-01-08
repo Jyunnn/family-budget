@@ -117,6 +117,90 @@ public sealed class ExpensesController : ControllerBase
         return Created($"/expenses/{expense.Id}", expense);
     }
 
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ExpenseDto>> UpdateExpense(string id, [FromBody] ExpenseUpdateRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Date) || !DateValidation.IsValidDate(request.Date))
+        {
+            return BadRequest(new { message = "Invalid expense date." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.MemberId) || string.IsNullOrWhiteSpace(request.CategoryId))
+        {
+            return BadRequest(new { message = "Invalid member or category." });
+        }
+
+        if (request.Amount <= 0)
+        {
+            return BadRequest(new { message = "Amount must be greater than zero." });
+        }
+
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+
+        if (!await ExistsAsync(connection, "Members", request.MemberId))
+        {
+            return BadRequest(new { message = "Member not found." });
+        }
+
+        if (!await ExistsAsync(connection, "Categories", request.CategoryId))
+        {
+            return BadRequest(new { message = "Category not found." });
+        }
+
+        var expense = new ExpenseDto(
+            id,
+            request.Date,
+            request.MemberId,
+            request.CategoryId,
+            request.Amount,
+            string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim());
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            UPDATE Expenses
+            SET Date = @date,
+                MemberId = @memberId,
+                CategoryId = @categoryId,
+                Amount = @amount,
+                Note = @note
+            WHERE Id = @id;
+            """;
+        command.Parameters.AddWithValue("@id", expense.Id);
+        command.Parameters.AddWithValue("@date", expense.Date);
+        command.Parameters.AddWithValue("@memberId", expense.MemberId);
+        command.Parameters.AddWithValue("@categoryId", expense.CategoryId);
+        command.Parameters.AddWithValue("@amount", expense.Amount);
+        command.Parameters.AddWithValue("@note", (object?)expense.Note ?? DBNull.Value);
+
+        var rows = await command.ExecuteNonQueryAsync();
+        if (rows == 0)
+        {
+            return NotFound();
+        }
+
+        return Ok(expense);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteExpense(string id)
+    {
+        await using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Expenses WHERE Id = @id;";
+        command.Parameters.AddWithValue("@id", id);
+
+        var rows = await command.ExecuteNonQueryAsync();
+        if (rows == 0)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
+
     private static async Task<bool> ExistsAsync(SqliteConnection connection, string table, string id)
     {
         await using var command = connection.CreateCommand();

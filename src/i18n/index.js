@@ -8,6 +8,10 @@ const messages = {
       title: 'Family Budget Hub',
       subtitle: 'Track daily spending, split contributions, and prepare the next deposit.'
     },
+    nav: {
+      home: 'Home',
+      setting: 'Settings'
+    },
     summary: {
       thisMonth: 'This month',
       members: 'Members',
@@ -37,6 +41,8 @@ const messages = {
       requiredError: 'Please complete all required fields.',
       amountError: 'Amount must be greater than zero.',
       saveError: 'Failed to save expense.',
+      updateError: 'Failed to update expense.',
+      removeError: 'Failed to remove expense.',
       save: 'Save expense',
       saving: 'Saving...'
     },
@@ -103,6 +109,10 @@ const messages = {
       title: '家庭記帳中心',
       subtitle: '記錄每日支出、分攤費用並準備下月匯款。'
     },
+    nav: {
+      home: '首頁',
+      setting: '設定'
+    },
     summary: {
       thisMonth: '本月支出',
       members: '成員',
@@ -132,6 +142,8 @@ const messages = {
       requiredError: '請完成所有必填欄位。',
       amountError: '金額需大於 0。',
       saveError: '儲存支出失敗。',
+      updateError: '更新支出失敗。',
+      removeError: '刪除支出失敗。',
       save: '儲存支出',
       saving: '儲存中...'
     },
