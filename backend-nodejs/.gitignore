@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+App_Data/*.db
+App_Data/*.db-shm
+App_Data/*.db-wal
+coverage/
