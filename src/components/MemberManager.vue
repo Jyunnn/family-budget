@@ -57,6 +57,7 @@ const saveMember = async () => {
 }
 
 const removeMember = async (memberId) => {
+  if (!confirm(t('confirm.removeMember'))) return
   const result = await store.removeMember(memberId)
   if (!result.removed) {
     errorMessage.value = result.message || t('member.removeBlocked')

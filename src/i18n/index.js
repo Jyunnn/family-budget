@@ -102,6 +102,11 @@ const messages = {
     },
     chart: {
       spendLabel: 'Spend'
+    },
+    confirm: {
+      removeExpense: 'Are you sure you want to remove this expense?',
+      removeMember: 'Are you sure you want to remove this member?',
+      removeCategory: 'Are you sure you want to remove this category?'
     }
   },
   'zh-TW': {
@@ -203,6 +208,11 @@ const messages = {
     },
     chart: {
       spendLabel: '支出'
+    },
+    confirm: {
+      removeExpense: '確定要刪除這筆支出嗎？',
+      removeMember: '確定要刪除這位成員嗎？',
+      removeCategory: '確定要刪除這個類別嗎？'
     }
   }
 }

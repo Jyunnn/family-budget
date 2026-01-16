@@ -84,6 +84,7 @@ const saveEdit = async () => {
 }
 
 const removeExpense = async (expenseId) => {
+  if (!confirm(t('confirm.removeExpense'))) return
   errorMessage.value = ''
   const result = await store.removeExpense(expenseId)
   if (!result.removed) {

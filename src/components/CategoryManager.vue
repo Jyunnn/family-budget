@@ -44,6 +44,7 @@ const saveCategory = async () => {
 }
 
 const removeCategory = async (categoryId) => {
+  if (!confirm(t('confirm.removeCategory'))) return
   const result = await store.removeCategory(categoryId)
   if (!result.removed) {
     errorMessage.value = result.message || t('category.inUse')
