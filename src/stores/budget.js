@@ -9,6 +9,8 @@ export const useBudgetStore = defineStore('budget', () => {
   const members = ref([])
   const categories = ref([])
   const expenses = ref([])
+  const accounts = ref([])
+  const transactions = ref([])
   const selectedDate = ref(formatDate(new Date()))
   const periodFilter = ref({ type: 'month', value: formatMonth(new Date()) })
   const error = ref('')
@@ -16,6 +18,7 @@ export const useBudgetStore = defineStore('budget', () => {
   const isLoading = ref(false)
 
   const activeCategories = computed(() => categories.value.filter((item) => item.isActive))
+  const activeAccount = computed(() => accounts.value.find((acc) => acc.isActive) || null)
 
   const setError = (message) => {
     error.value = message
@@ -29,14 +32,18 @@ export const useBudgetStore = defineStore('budget', () => {
     isLoading.value = true
     clearError()
     try {
-      const [membersRes, categoriesRes, expensesRes] = await Promise.all([
+      const [membersRes, categoriesRes, expensesRes, accountsRes, transactionsRes] = await Promise.all([
         api.get('/members'),
         api.get('/categories'),
-        api.get('/expenses', { params: DEFAULT_EXPENSE_RANGE })
+        api.get('/expenses', { params: DEFAULT_EXPENSE_RANGE }),
+        api.get('/household-accounts'),
+        api.get('/transactions')
       ])
       members.value = membersRes.data ?? []
       categories.value = categoriesRes.data ?? []
       expenses.value = expensesRes.data ?? []
+      accounts.value = accountsRes.data ?? []
+      transactions.value = transactionsRes.data ?? []
     } catch (err) {
       setError(getErrorMessage(err, 'Failed to load data.'))
     } finally {
@@ -172,15 +179,17 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
-  const addExpense = async ({ date, memberId, categoryId, amount, note }) => {
+  const addExpense = async ({ date, memberId, categoryId, amount, note, isFromHousehold = false, householdAccountId }) => {
     clearError()
     try {
       const response = await api.post('/expenses', {
         date,
-        memberId,
+        memberId: isFromHousehold ? null : memberId,
         categoryId,
         amount: Number(amount),
-        note: note?.trim() || null
+        note: note?.trim() || null,
+        isFromHousehold,
+        householdAccountId
       })
       expenses.value.unshift(response.data)
       return { ok: true }
@@ -196,10 +205,12 @@ export const useBudgetStore = defineStore('budget', () => {
     try {
       const response = await api.put(`/expenses/${id}`, {
         date: payload.date,
-        memberId: payload.memberId,
+        memberId: payload.isFromHousehold ? null : payload.memberId,
         categoryId: payload.categoryId,
         amount: Number(payload.amount),
-        note: payload.note?.trim() || null
+        note: payload.note?.trim() || null,
+        isFromHousehold: payload.isFromHousehold,
+        householdAccountId: payload.isFromHousehold ? payload.householdAccountId : null
       })
       const index = expenses.value.findIndex((item) => item.id === id)
       const updated = response.data ?? { ...payload, id }
@@ -227,16 +238,78 @@ export const useBudgetStore = defineStore('budget', () => {
     }
   }
 
+  const addDeposit = async ({ date, memberId, amount, note }) => {
+    clearError()
+    try {
+      const response = await api.post('/transactions/deposit', {
+        date,
+        memberId,
+        amount: Number(amount),
+        note: note?.trim() || null
+      })
+      transactions.value.unshift(response.data)
+      const accountIndex = accounts.value.findIndex((acc) => acc.id === response.data.householdAccountId)
+      if (accountIndex !== -1) {
+        accounts.value[accountIndex].currentBalance = response.data.currentBalance
+      }
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to record deposit.')
+      setError(message)
+      return { ok: false, message }
+    }
+  }
+
+  const removeTransaction = async (id) => {
+    clearError()
+    try {
+      const transaction = transactions.value.find((t) => t.id === id)
+      const householdAccountId = transaction?.householdAccountId
+      await api.delete(`/transactions/${id}`)
+      transactions.value = transactions.value.filter((item) => item.id !== id)
+      if (householdAccountId && transaction) {
+        const accountIndex = accounts.value.findIndex((acc) => acc.id === householdAccountId)
+        if (accountIndex !== -1) {
+          accounts.value[accountIndex].currentBalance += (transaction.type === 'DEPOSIT' ? -transaction.amount : transaction.amount)
+        }
+      }
+      return { removed: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to remove transaction.')
+      setError(message)
+      return { removed: false, message }
+    }
+  }
+
+  const updateAccount = async (id, payload) => {
+    clearError()
+    try {
+      await api.put(`/household-accounts/${id}`, payload)
+      const index = accounts.value.findIndex((item) => item.id === id)
+      if (index !== -1) {
+        accounts.value[index] = { ...accounts.value[index], ...payload }
+      }
+      return { ok: true }
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to update account.')
+      setError(message)
+      return { ok: false, message }
+    }
+  }
+
   return {
     members,
     categories,
     expenses,
+    accounts,
+    transactions,
     selectedDate,
     periodFilter,
     error,
     isReady,
     isLoading,
     activeCategories,
+    activeAccount,
     loadFromApi,
     refreshExpenses,
     setSelectedDate,
@@ -250,6 +323,9 @@ export const useBudgetStore = defineStore('budget', () => {
     removeCategory,
     addExpense,
     updateExpense,
-    removeExpense
+    removeExpense,
+    addDeposit,
+    removeTransaction,
+    updateAccount
   }
 })

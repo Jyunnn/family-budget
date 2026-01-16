@@ -10,12 +10,14 @@ const messages = {
     },
     nav: {
       home: 'Home',
-      setting: 'Settings'
+      setting: 'Settings',
+      account: 'Account'
     },
     summary: {
       thisMonth: 'This month',
       members: 'Members',
-      active: '{count} active'
+      active: '{count} active',
+      accountBalance: 'Account Balance'
     },
     alerts: {
       setupTitle: 'Start by adding family members.',
@@ -38,6 +40,8 @@ const messages = {
       notePlaceholder: 'Optional',
       selectMember: 'Select member',
       selectCategory: 'Select category',
+      paymentSource: 'Payment Source',
+      selectPaymentSource: 'Select payment source',
       requiredError: 'Please complete all required fields.',
       amountError: 'Amount must be greater than zero.',
       saveError: 'Failed to save expense.',
@@ -98,15 +102,55 @@ const messages = {
       clear: 'Clear',
       edit: 'Edit',
       remove: 'Remove',
-      toggle: 'Toggle'
+      toggle: 'Toggle',
+      cancel: 'Cancel',
+      save: 'Save'
     },
     chart: {
       spendLabel: 'Spend'
     },
+    account: {
+      title: 'Household Account',
+      subtitle: 'Manage household funds and transactions.',
+      bankName: 'Bank Name',
+      accountNumber: 'Account Number',
+      initialBalance: 'Initial Balance',
+      currentBalance: 'Current Balance',
+      totalDeposit: 'Total Deposits',
+      totalPayment: 'Total Payments',
+      depositForm: {
+        title: 'Record Deposit',
+        date: 'Date',
+        member: 'Member',
+        amount: 'Amount (NT$)',
+        note: 'Note',
+        notePlaceholder: 'Optional',
+        selectMember: 'Select member',
+        save: 'Record Deposit',
+        saving: 'Recording...'
+      },
+      transactions: {
+        title: 'Transaction History',
+        filter: 'Filter',
+        all: 'All',
+        deposit: 'Deposits',
+        payment: 'Payments',
+        empty: 'No transactions yet.'
+      },
+      type: {
+        deposit: 'Deposit',
+        payment: 'Payment'
+      },
+      paymentSource: 'Payment Source',
+      memberAccount: 'Member Account',
+      householdAccount: 'Household Account',
+      editAccount: 'Edit Account'
+    },
     confirm: {
       removeExpense: 'Are you sure you want to remove this expense?',
       removeMember: 'Are you sure you want to remove this member?',
-      removeCategory: 'Are you sure you want to remove this category?'
+      removeCategory: 'Are you sure you want to remove this category?',
+      removeTransaction: 'Are you sure you want to remove this transaction?'
     }
   },
   'zh-TW': {
@@ -116,12 +160,14 @@ const messages = {
     },
     nav: {
       home: '首頁',
-      setting: '設定'
+      setting: '設定',
+      account: '帳戶'
     },
     summary: {
       thisMonth: '本月支出',
       members: '成員',
-      active: '共 {count} 位'
+      active: '共 {count} 位',
+      accountBalance: '家用帳戶餘額'
     },
     alerts: {
       setupTitle: '請先新增家庭成員。',
@@ -144,6 +190,8 @@ const messages = {
       notePlaceholder: '選填',
       selectMember: '選擇成員',
       selectCategory: '選擇類型',
+      paymentSource: '支付來源',
+      selectPaymentSource: '選擇支付來源',
       requiredError: '請完成所有必填欄位。',
       amountError: '金額需大於 0。',
       saveError: '儲存支出失敗。',
@@ -204,15 +252,55 @@ const messages = {
       clear: '清除',
       edit: '編輯',
       remove: '刪除',
-      toggle: '切換'
+      toggle: '切換',
+      cancel: '取消',
+      save: '儲存'
     },
     chart: {
       spendLabel: '支出'
     },
+    account: {
+      title: '家用銀行帳戶',
+      subtitle: '管理家用資金與交易記錄。',
+      bankName: '銀行名稱',
+      accountNumber: '帳號',
+      initialBalance: '初始餘額',
+      currentBalance: '目前餘額',
+      totalDeposit: '總匯款',
+      totalPayment: '總支出',
+      depositForm: {
+        title: '記錄匯款',
+        date: '日期',
+        member: '匯款成員',
+        amount: '金額 (NT$)',
+        note: '備註',
+        notePlaceholder: '選填',
+        selectMember: '選擇成員',
+        save: '記錄匯款',
+        saving: '記錄中...'
+      },
+      transactions: {
+        title: '交易記錄',
+        filter: '篩選',
+        all: '全部',
+        deposit: '匯款',
+        payment: '支出',
+        empty: '尚無交易記錄。'
+      },
+      type: {
+        deposit: '匯款',
+        payment: '支出'
+      },
+      paymentSource: '支付來源',
+      memberAccount: '成員帳戶',
+      householdAccount: '家用帳戶',
+      editAccount: '編輯帳戶'
+    },
     confirm: {
       removeExpense: '確定要刪除這筆支出嗎？',
       removeMember: '確定要刪除這位成員嗎？',
-      removeCategory: '確定要刪除這個類別嗎？'
+      removeCategory: '確定要刪除這個類別嗎？',
+      removeTransaction: '確定要刪除這筆交易嗎？'
     }
   }
 }

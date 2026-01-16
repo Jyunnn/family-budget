@@ -17,6 +17,8 @@ const currentMonthTotal = computed(() => {
 
 const activeMembers = computed(() => store.members.length)
 
+const activeAccount = computed(() => store.activeAccount)
+
 const localeOptions = [
   { code: 'zh-TW', label: '繁中' },
   { code: 'en', label: 'EN' }
@@ -44,6 +46,13 @@ const changeLocale = (value) => {
               exact-active-class="border-sky-400/80 bg-sky-400/20 text-sky-200"
             >
               {{ t('nav.home') }}
+            </RouterLink>
+            <RouterLink
+              to="/account"
+              class="rounded-full border border-slate-700/70 bg-slate-950/60 px-4 py-1 text-slate-300 transition hover:border-slate-400/80 hover:text-slate-100"
+              exact-active-class="border-sky-400/80 bg-sky-400/20 text-sky-200"
+            >
+              {{ t('nav.account') }}
             </RouterLink>
             <RouterLink
               to="/setting"
@@ -76,6 +85,12 @@ const changeLocale = (value) => {
               <p class="text-xs uppercase tracking-[0.2em] text-slate-500">{{ t('summary.thisMonth') }}</p>
               <p class="mt-1 text-lg font-semibold text-sky-300">
                 NT$ {{ currentMonthTotal.toLocaleString() }}
+              </p>
+            </div>
+            <div v-if="activeAccount" class="rounded-2xl border border-slate-700/60 bg-slate-950/60 px-4 py-3">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">{{ t('summary.accountBalance') }}</p>
+              <p class="mt-1 text-lg font-semibold text-emerald-300">
+                NT$ {{ activeAccount.currentBalance.toLocaleString() }}
               </p>
             </div>
             <div class="rounded-2xl border border-slate-700/60 bg-slate-950/60 px-4 py-3">
