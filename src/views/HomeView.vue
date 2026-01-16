@@ -40,9 +40,6 @@ const { t } = useI18n()
           <RemittancePanel />
         </div>
       </div>
-      <div class="mt-6">
-        <SettingsPanel />
-      </div>
     </main>
   </div>
 </template>

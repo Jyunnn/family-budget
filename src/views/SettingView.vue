@@ -6,7 +6,7 @@ import SettingsPanel from '../components/SettingsPanel.vue'
 <template>
   <div class="mesh-grid min-h-screen">
     <HeaderBar />
-    <main class="mx-auto max-w-4xl px-4 pb-16 pt-6 lg:px-6">
+    <main class="mx-auto max-w-6xl px-4 pb-16 pt-6 lg:px-6">
       <div class="space-y-6">
         <SettingsPanel />
       </div>
