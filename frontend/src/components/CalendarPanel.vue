@@ -82,7 +82,7 @@ const selectedDayExpenses = computed(() => {
       date: expense.date,
       memberId: expense.memberId,
       categoryId: expense.categoryId,
-      memberName: membersMap.get(expense.memberId) || 'Unknown',
+      memberName: expense.isFromHousehold ? t('account.householdAccount') : (membersMap.get(expense.memberId) || 'Unknown'),
       categoryName: categoriesMap.get(expense.categoryId) || 'Other',
       amount: expense.amount,
       note: expense.note

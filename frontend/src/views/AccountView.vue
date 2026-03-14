@@ -8,7 +8,7 @@ import TransactionList from '../components/TransactionList.vue'
 <template>
   <div class="min-h-screen bg-slate-950">
     <HeaderBar />
-    <main class="mx-auto max-w-7xl px-4 py-6 md:px-6">
+    <main class="mx-auto max-w-6xl px-4 py-6 md:px-6">
       <div class="grid gap-6 lg:grid-cols-3">
         <div class="lg:col-span-1 space-y-6">
           <AccountInfoCard />

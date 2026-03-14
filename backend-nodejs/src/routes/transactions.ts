@@ -107,6 +107,8 @@ router.post('/deposit', asyncHandler(async (req: Request, res: Response) => {
 
     db.prepare('UPDATE HouseholdAccounts SET CurrentBalance = CurrentBalance + ? WHERE Id = ?').run(amount, activeAccount.Id);
 
+    const member = db.prepare('SELECT Name FROM Members WHERE Id = ?').get(memberId) as { Name: string } | undefined;
+
     db.prepare('COMMIT').run();
 
     const updatedAccount = db.prepare('SELECT CurrentBalance FROM HouseholdAccounts WHERE Id = ?').get(activeAccount.Id) as { CurrentBalance: number };
@@ -118,6 +120,10 @@ router.post('/deposit', asyncHandler(async (req: Request, res: Response) => {
       date,
       householdAccountId: activeAccount.Id,
       memberId,
+      memberName: member?.Name || null,
+      expenseId: null,
+      categoryName: null,
+      expenseNote: null,
       note,
       currentBalance: updatedAccount.CurrentBalance
     });
