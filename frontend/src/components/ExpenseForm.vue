@@ -23,6 +23,18 @@ const { t } = useI18n()
   const categoryOptions = computed(() => store.activeCategories)
   const activeAccount = computed(() => store.activeAccount)
 
+  const calculateAmount = (value) => {
+    if (!value) return ''
+    const parts = value.split('+').map(s => s.trim()).filter(Boolean)
+    if (parts.length <= 1) return value
+    const sum = parts.reduce((acc, n) => acc + Number(n), 0)
+    return isNaN(sum) ? value : String(sum)
+  }
+
+  const onAmountBlur = () => {
+    form.value.amount = calculateAmount(form.value.amount)
+  }
+
   const resetForm = () => {
     form.value = {
       date: store.selectedDate,
@@ -169,9 +181,9 @@ watch(
           <input
             v-model="form.amount"
             class="mt-2 w-full rounded-xl border border-slate-700/70 bg-slate-950/60 px-3 py-2 text-sm text-slate-100"
-            type="number"
-            min="1"
-            step="1"
+            type="text"
+            inputmode="numeric"
+            @blur="onAmountBlur"
             required
           />
         </label>
